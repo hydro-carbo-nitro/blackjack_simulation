@@ -33,11 +33,11 @@ void draw_card(int **player_arr, int *count_arr, int *sum_arr, int index)
     int individual_sum = sum_arr[index];                // 현재 갖고있는 카드의 합 (임시)
 
     rand_deck = rand()%13;                              // 어떤 카드를 뽑을지 (전역변수, 임시)
-    drawn_card = entire_deck[rand_deck];                       // 뽑은 카드 (전역변수, 임시)
+    drawn_card = entire_deck[rand_deck];                // 뽑은 카드 (전역변수, 임시)
 
     if (individual_sum > 21);
     {
-
+        
     }
 }
 
@@ -84,11 +84,26 @@ int main()
         }
     }
     /* 카드 두장 나눠주기 완료 */
+
+    /* ====================================== This is for debug ====================================== */
     printf("-------------------Initial Deck-------------------\n");
     output_value(players, count_of_deck);  // input된 값 output
     printf("--------------------------------------------------\n");
+    /* ====================================== This is for debug ====================================== */
 
     /* 그 이후 진행 */
+    for (int i = 0; i < N; i++)
+    {
+        if (count_of_deck[i] != 0)  // 죽은사람 스킵
+        {
+            rand_draw = rand()%100;
+            if (rand_draw <= p)     // 뽑을지 말지 판단
+            {
+                draw_card(players, count_of_deck, sum_of_deck, i);
+            }
+        }
+    }
+
 
     /* 종료 */
 
