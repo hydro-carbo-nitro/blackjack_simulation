@@ -124,9 +124,9 @@ void dealer_draw(int *dealer_arr, int *count, int *sum)
     *sum += drawn_card;
 }
 
-void game_set()
+void game_set(int *player_sum_arr, int *dealer_sum)
 {
-    /* 게임 종료만하면 됨 */
+    /* 게임 끝내기만 하면 되는데... 여기까지 오니까 게임 룰을 잘못 이해하고 있었던것 같음 */
 }
 
 int main()
@@ -234,23 +234,21 @@ int main()
         {   
             /* 종료 */
             printf("=========================Dealer stop the game=========================");
-            game_set();
+            //game_set();
             is_bursted = true;
         }
         else
         {
             dealer_draw(dealer, &dealer_count, &dealer_sum);  // 딜러도 카드는 뽑아야지
-            if(dealer_sum > 21) 
+            if(dealer_sum > 21) // 뽑았더니 21이 넘었네
             {
                 printf("=========================Dealer is bursted=========================");
-                game_set();
+                //game_set();
                 is_bursted = true;
             }
         }
     }
     
-    
-
     /* 동적할당 해제 */
     for (int i = 0; i < N; i++)
     {
