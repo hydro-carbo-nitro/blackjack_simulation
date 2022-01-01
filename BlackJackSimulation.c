@@ -4,7 +4,8 @@
 #include <stdbool.h>
 
 /* initial condition */
-int N = 15;     // 전체 플레이어 수
+int N = 20;     // 전체 플레이어 수
+int number_of_games = 10;       // 몇판 게임할지
 int p = 30;     // 카드를 뽑을 확률 [0 ~ 100(%)]
 int limit = 17; // 딜러가 게임을 정지할 조건
 int entire_deck[13] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11};      // 뽑을 수 있는 카드의 종류
@@ -73,11 +74,10 @@ void draw_card(int **player_arr, int *count_arr, int *sum_arr, int index)
             }
             */
             count_arr[index] = 0;
-            sum_arr[index] = 0;
+            sum_arr[index] = -1;
             printf("%dth player is busted\n", index);     // 디버그용 프린트
             return;
         }
-        
     }
 
     /* 뽑은 카드를 player_arr에 넣기위한 재할당 과정*/
@@ -120,10 +120,9 @@ void dealer_draw(int *dealer_arr, int *count, int *sum)
         {
             *count = 0;
             *sum = 0;
-            printf("Dealer is busted\n");     // 디버그용 프린트
+            printf("Dealer is busted\n\n");     // 디버그용 프린트
             return;
-        }
-        
+        }    
     }
 
     /* 뽑은 카드를 dealer_arr에 넣기위한 재할당 과정*/
@@ -174,27 +173,23 @@ void play_game(int *money_of_player)
     {
         players[i] = (int *)malloc(sizeof(int) * 2);   // 배열의 col. 2장 먼저 받고 시작
 
-        if (money_of_player[i] != 0)
+        money_of_player[i] -= betting_money;
+        for (int j = 0; j < 2; j++)
         {
-            money_of_player[i] -= betting_money;
-            for (int j = 0; j < 2; j++)
-            {
-                rand_deck = rand()%13;                              // 어떤 카드를 뽑을지 (전역변수, 임시)
-                drawn_card = entire_deck[rand_deck];                // 뽑은 카드 (전역변수, 임시)
+            rand_deck = rand()%13;                              // 어떤 카드를 뽑을지 (전역변수, 임시)
+            drawn_card = entire_deck[rand_deck];                // 뽑은 카드 (전역변수, 임시)
                 
-                players[i][j] = drawn_card;                         // 카드 뽑았으니 덱에 넣기
-                count_of_deck[i]++;                                 // 카드 매수 늘리기
-                sum_of_deck[i] += drawn_card;                       // 카드의 합 늘리기
+            players[i][j] = drawn_card;                         // 카드 뽑았으니 덱에 넣기
+            count_of_deck[i]++;                                 // 카드 매수 늘리기
+            sum_of_deck[i] += drawn_card;                       // 카드의 합 늘리기
 
-                if (sum_of_deck[i] > 21)
-                {
-                    // 첫 두번의 드로우에서 21이 넘는 경우는 A 두장, 즉 11 + 11 뿐이므로 나중에 뽑힌 11을 1로 만들어주면 된다.
-                    players[i][j] = 1;      
-                    sum_of_deck[i] -= 10;
-                }
+            if (sum_of_deck[i] > 21)
+            {
+                // 첫 두번의 드로우에서 21이 넘는 경우는 A 두장, 즉 11 + 11 뿐이므로 나중에 뽑힌 11을 1로 만들어주면 된다.
+                players[i][j] = 1;      
+                sum_of_deck[i] -= 10;
             }
         }
-        
     }
 
     /* 딜러도 패는 나눠줘야지 */
@@ -240,11 +235,11 @@ void play_game(int *money_of_player)
 
     while(dealer_sum > 1 && dealer_sum < limit)
     {
+        printf("\n");
         dealer_draw(dealer, &dealer_count, &dealer_sum);
     }
     game_set(dealer_sum, sum_of_deck, money_of_player);     // 게임 종료
 
-    printf("======================= THIS IS FOR DEBUG =======================\n");
     printf("Dealer(%d) : [ ", dealer_sum);
     for (int j = 0; j < dealer_count; j++)
     {
@@ -253,7 +248,7 @@ void play_game(int *money_of_player)
     printf("]\n");
     for (int i = 0; i < N; i++) 
     {
-        printf("%dth player(%d) : [ ", i, money_of_player[i]);
+        printf("%dth player(%d / %d) : [ ", i, money_of_player[i], sum_of_deck[i]);
         for (int j = 0; j < count_of_deck[i]; j++)
         {
             printf("%d ", players[i][j]);
@@ -261,7 +256,7 @@ void play_game(int *money_of_player)
         printf("]\n");
         
     }
-    printf("======================= THIS IS FOR DEBUG =======================\n");
+    printf("==== ==== ==== ==== game end ==== ==== ==== ====\n\n\n");
 
     /* 동적할당 해제 */
     for (int i = 0; i < N; i++)
@@ -280,18 +275,34 @@ int main()
     srand(time(NULL)); // 난수 초기화
 
     int *money;
-    money = (int *)malloc(sizeof(int *) * N);     // 카드의 합에 대한 정보가 담겨있는 arr
+    money = (int *)malloc(sizeof(int *) * N);     // 소지금에 대한 정보가 담겨있는 arr
     for (int i = 0; i < N; i++)
     {
-        money[i] = 10;     // 초기 금액 100만원
+        money[i] = 0;     // 초기 금액 0원
     }
 
-    printf("START GAME\n\n\n\n\n\n\n\n\n\n\n");
-    for (int game_number = 0; game_number < 100; game_number++)
+    float *avg_money;
+    avg_money = (float *)malloc(sizeof(float *) * number_of_games);
+    for (int i = 0; i < number_of_games; i++)
     {
-        printf("%dth game\n\n\n", game_number);
+        avg_money[i] = 0;
+    }
+
+    for (int game_number = 0; game_number < number_of_games; game_number++)
+    {
+        printf("==== ==== ==== ==== %dth game ==== ==== ==== ====\n", game_number);
         play_game(money);
+        for (int i = 0; i < N; i++)
+        {
+            avg_money[game_number] += money[i];
+        }
+    }
+
+    for (int i = 0; i < number_of_games; i++)
+    {
+        printf("%d\n", avg_money[i]);
     }
 
     free(money);
+    free(avg_money);
 }
